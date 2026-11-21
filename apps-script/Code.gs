@@ -1,154 +1,97 @@
 /**
- * ระบบเช็คชื่อออนไลน์: Google Apps Script backend
- * บันทึกการเช็คชื่อทุกครั้งลง Google Sheets (ชีต Attendance) พร้อมเก็บรูปลายเซ็นไว้ใน Google Drive
+ * รับข้อมูลเช็คชื่อจากเว็บ แล้วบันทึกลง Google Sheets
  *
- * ติดตั้ง: ดู README.md ในโปรเจกต์
- * รหัสผู้ดูแลตั้งค่าที่ Project Settings › Script Properties › ADMIN_KEY (ไม่ได้อยู่ในโค้ด จึงขึ้น GitHub ได้ปลอดภัย)
+ * ชีต "บันทึกเวลา"   : 1 แถวต่อ 1 ครั้งที่มีคนกดบันทึก (ประวัติทั้งหมด)
+ * ชีต "สรุปรายชื่อ"  : 1 แถวต่อ 1 คน อัปเดตสถานะล่าสุดเสมอ
+ * โฟลเดอร์ Drive "ลายเซ็นผู้เข้าอบรม" : เก็บรูปลายเซ็น (ลิงก์อยู่ในชีต)
+ *
+ * วิธีติดตั้งอยู่ใน README.md
  */
+const TZ = 'Asia/Bangkok';
+const LOG_SHEET = 'บันทึกเวลา';
+const SUMMARY_SHEET = 'สรุปรายชื่อ';
+const SIG_FOLDER = 'ลายเซ็นผู้เข้าอบรม';
+const SAVE_SIGNATURE_TO_DRIVE = true;
 
-const SAVE_SIGNATURE_TO_DRIVE = true;               // เก็บไฟล์ลายเซ็น .png ไว้ใน Drive แล้วใส่ลิงก์ในชีต
-const SIGNATURE_FOLDER = 'Attendance Signatures';   // ชื่อโฟลเดอร์ใน Drive
+const LOG_HEAD = ['เวลาที่บันทึก', 'การกระทำ', 'ลำดับ', 'คำนำหน้า', 'ชื่อ-นามสกุล', 'บริษัท/หน่วยงาน', 'สถานะ', 'เวลาเซ็น', 'ลายเซ็น', 'อุปกรณ์', 'หลักสูตร'];
+const SUM_HEAD = ['id', 'ลำดับ', 'คำนำหน้า', 'ชื่อ-นามสกุล', 'บริษัท/หน่วยงาน', 'สถานะ', 'เวลาเซ็น', 'ลายเซ็น', 'อัปเดตล่าสุด'];
 
-const R_HEAD = ['id', 'ชื่อ-นามสกุล', 'หน่วยงาน', 'ชื่อภาษาอังกฤษ'];
-const A_HEAD = ['วันที่', 'id', 'ชื่อ-นามสกุล', 'หน่วยงาน', 'เวลาเช็คอิน', 'สถานะ', 'สาย (นาที)', 'บันทึกเมื่อ (ISO)', 'ลิงก์ลายเซ็น', 'ลายเซ็น (ข้อมูลภาพ)'];
-const S_HEAD = ['key', 'value'];
-
-/** รัน 1 ครั้งหลังวางโค้ด: สร้างชีต, โฟลเดอร์ลายเซ็น และขออนุญาตสิทธิ์ */
 function setup() {
-  sheet_('Roster', R_HEAD);
-  sheet_('Attendance', A_HEAD);
-  const s = sheet_('Settings', S_HEAD);
-  if (s.getLastRow() < 2) s.getRange(2, 1, 3, 2).setValues([['title', 'Claude AI'], ['start', '09:00'], ['grace', 15]]);
+  const ss = SpreadsheetApp.getActive();
+  sheet_(ss, LOG_SHEET, LOG_HEAD);
+  sheet_(ss, SUMMARY_SHEET, SUM_HEAD);
   if (SAVE_SIGNATURE_TO_DRIVE) folder_();
-  if (!adminKey_()) Logger.log('⚠️ ยังไม่ได้ตั้ง ADMIN_KEY ใน Project Settings › Script Properties');
-  Logger.log('ติดตั้งเรียบร้อย ไป Deploy เป็น Web app ต่อได้เลย');
 }
 
-function doGet(e) {
-  const p = (e && e.parameter) || {};
-  try {
-    if (p.action === 'state') return out_(state_(String(p.date || today_())));
-    return out_({ ok: true, hello: 'TESR attendance API', admin_key_set: !!adminKey_() });
-  } catch (err) {
-    return out_({ ok: false, error: String(err.message || err) });
-  }
+function doGet() {
+  return json_({ ok: true, hello: 'training check-in sheet', token_set: !!token_() });
 }
 
 function doPost(e) {
+  let d;
+  try { d = JSON.parse(e.postData.contents); } catch (err) { return json_({ ok: false, error: 'bad json' }); }
+  if (token_() && d.token !== token_()) return json_({ ok: false, error: 'bad token' });
+
   const lock = LockService.getScriptLock();
   lock.waitLock(20000);
   try {
-    const b = JSON.parse((e && e.postData && e.postData.contents) || '{}');
-    if (b.action === 'checkin') return out_(checkin_(b));
-    if (b.action === 'uncheck') { auth_(b); return out_(uncheck_(b)); }
-    if (b.action === 'saveClass') { auth_(b); return out_(saveClass_(b.cls || {})); }
-    return out_({ ok: false, error: 'unknown_action' });
-  } catch (err) {
-    return out_({ ok: false, error: String(err.message || err) });
+    const ss = SpreadsheetApp.getActive();
+    const log = sheet_(ss, LOG_SHEET, LOG_HEAD);
+    const sum = sheet_(ss, SUMMARY_SHEET, SUM_HEAD);
+    const now = fmt_(new Date());
+    const ids = sum.getLastRow() > 1 ? sum.getRange(2, 1, sum.getLastRow() - 1, 1).getValues().map(r => String(r[0])) : [];
+    const logRows = [];
+
+    (d.people || []).forEach(p => {
+      const status = p.status === 'P' ? 'มา' : p.status === 'A' ? 'ไม่มา' : 'ยังไม่เช็ค';
+      const signedAt = p.signed_at ? fmt_(new Date(p.signed_at)) : '';
+      const sigLink = p.signature ? saveSig_(p) : '';
+      logRows.push([now, d.action || '', p.no || '', p.prefix || '', p.name || '', p.company || '', status, signedAt, sigLink, d.device || '', d.course || '']);
+
+      const row = [p.id, p.no || '', p.prefix || '', p.name || '', p.company || '', status, signedAt, sigLink, now];
+      const i = ids.indexOf(String(p.id));
+      if (i >= 0) sum.getRange(i + 2, 1, 1, row.length).setValues([row]);
+      else { sum.appendRow(row); ids.push(String(p.id)); }
+    });
+
+    if (d.action !== 'ซิงก์ทั้งหมด' && logRows.length) {
+      log.getRange(log.getLastRow() + 1, 1, logRows.length, LOG_HEAD.length).setValues(logRows);
+    } else if (logRows.length) {
+      log.appendRow([now, 'ซิงก์ทั้งหมด', '', '', 'ส่งข้อมูล ' + logRows.length + ' คน', '', '', '', '', d.device || '', d.course || '']);
+    }
+    return json_({ ok: true, count: logRows.length });
   } finally {
     lock.releaseLock();
   }
 }
 
-/* ---------- actions ---------- */
-
-function state_(date) {
-  const cls = settings_();
-  const rs = sheet_('Roster', R_HEAD).getDataRange().getValues().slice(1);
-  cls.people = rs.filter(r => r[0] && r[1]).map(r => ({ id: String(r[0]), name: String(r[1]), org: String(r[2] || ''), en: String(r[3] || '') }));
-  const checks = {};
-  sheet_('Attendance', A_HEAD).getDataRange().getValues().slice(1).forEach(r => {
-    if (fmtDate_(r[0]) === date) checks[String(r[1])] = { t: String(r[7]), name: String(r[2]), org: String(r[3]), sig: String(r[9] || '') };
-  });
-  return { ok: true, cls, checks };
-}
-
-function checkin_(b) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(b.date || '')) || !b.pid) throw new Error('missing_fields');
-  const s = sheet_('Attendance', A_HEAD);
-  const v = s.getDataRange().getValues();
-  for (let i = 1; i < v.length; i++) {
-    if (fmtDate_(v[i][0]) === b.date && String(v[i][1]) === String(b.pid)) return { ok: true, already: true };
-  }
-  const r = b.rec || {};
-  const sig = /^data:image\/png;base64,/.test(String(r.sig || '')) ? String(r.sig) : '';
-  let link = '';
-  if (SAVE_SIGNATURE_TO_DRIVE && sig) {
-    try {
-      const blob = Utilities.newBlob(Utilities.base64Decode(sig.split(',')[1]), 'image/png', `${b.date}_${safe_(r.name || b.pid)}.png`);
-      link = folder_().createFile(blob).getUrl();
-    } catch (err) { link = ''; } // ถ้าบันทึกไฟล์ไม่ได้ ยังเช็คชื่อได้ตามปกติ
-  }
-  s.appendRow([b.date, String(b.pid), r.name || '', r.org || '', r.time || '', r.status || '',
-    r.late === '' || r.late == null ? '' : Number(r.late), r.t || new Date().toISOString(), link, sig.slice(0, 49000)]);
-  return { ok: true };
-}
-
-function uncheck_(b) {
-  const s = sheet_('Attendance', A_HEAD);
-  const v = s.getDataRange().getValues();
-  for (let i = v.length - 1; i >= 1; i--) {
-    if (fmtDate_(v[i][0]) === b.date && String(v[i][1]) === String(b.pid)) s.deleteRow(i + 1);
-  }
-  return { ok: true };
-}
-
-function saveClass_(cls) {
-  const st = sheet_('Settings', S_HEAD);
-  st.getRange(2, 1, Math.max(st.getLastRow(), 4), 2).clearContent();
-  st.getRange(2, 1, 3, 2).setValues([['title', cls.title || 'Claude AI'], ['start', cls.start || '09:00'], ['grace', Number(cls.grace) || 0]]);
-  const rs = sheet_('Roster', R_HEAD);
-  if (rs.getLastRow() > 1) rs.getRange(2, 1, rs.getLastRow() - 1, R_HEAD.length).clearContent();
-  const people = (cls.people || []).filter(p => p && p.name);
-  if (people.length) rs.getRange(2, 1, people.length, R_HEAD.length).setValues(people.map(p => [String(p.id), p.name, p.org || '', p.en || '']));
-  return { ok: true, count: people.length };
-}
-
 /* ---------- helpers ---------- */
+function token_() { return PropertiesService.getScriptProperties().getProperty('TOKEN') || ''; }
+function fmt_(dt) { return Utilities.formatDate(dt, TZ, 'yyyy-MM-dd HH:mm:ss'); }
+function json_(o) { return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
 
-function adminKey_() { return PropertiesService.getScriptProperties().getProperty('ADMIN_KEY') || ''; }
-
-function auth_(b) {
-  const k = adminKey_();
-  if (!k || String(b.key || '') !== k) throw new Error('bad_key');
-}
-
-function settings_() {
-  const o = { title: 'Claude AI', start: '09:00', grace: 15 };
-  sheet_('Settings', S_HEAD).getDataRange().getValues().slice(1).forEach(r => { if (r[0]) o[String(r[0])] = r[1]; });
-  if (o.start instanceof Date) o.start = Utilities.formatDate(o.start, Session.getScriptTimeZone(), 'HH:mm');
-  o.start = String(o.start); o.title = String(o.title); o.grace = Number(o.grace) || 0;
-  return o;
-}
-
-function sheet_(name, head) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let s = ss.getSheetByName(name);
-  if (!s) {
-    s = ss.insertSheet(name);
-    s.getRange(1, 1, 1, head.length).setValues([head]).setFontWeight('bold').setBackground('#eaf8f0');
-    s.setFrozenRows(1);
-    s.getRange('A:A').setNumberFormat('@');
-    if (name === 'Attendance') {
-      ['B:B', 'E:E', 'H:H'].forEach(c => s.getRange(c).setNumberFormat('@'));
-      s.setColumnWidth(3, 200); s.setColumnWidth(4, 220); s.setColumnWidth(10, 120);
-    }
-    if (name === 'Settings') s.getRange('B:B').setNumberFormat('@');
+function sheet_(ss, name, head) {
+  let sh = ss.getSheetByName(name);
+  if (!sh) {
+    sh = ss.insertSheet(name);
+    sh.getRange(1, 1, 1, head.length).setValues([head]).setFontWeight('bold').setBackground('#d4eecb');
+    sh.setFrozenRows(1);
   }
-  return s;
+  return sh;
 }
 
 function folder_() {
-  const it = DriveApp.getFoldersByName(SIGNATURE_FOLDER);
-  return it.hasNext() ? it.next() : DriveApp.createFolder(SIGNATURE_FOLDER);
+  const it = DriveApp.getFoldersByName(SIG_FOLDER);
+  return it.hasNext() ? it.next() : DriveApp.createFolder(SIG_FOLDER);
 }
 
-function safe_(s) { return String(s).replace(/[\\/:*?"<>|]+/g, '').slice(0, 60); }
-
-function fmtDate_(v) {
-  return v instanceof Date ? Utilities.formatDate(v, Session.getScriptTimeZone(), 'yyyy-MM-dd') : String(v);
+function saveSig_(p) {
+  if (!SAVE_SIGNATURE_TO_DRIVE) return 'มีลายเซ็น';
+  const m = String(p.signature).match(/^data:(image\/[a-z]+);base64,(.+)$/);
+  if (!m) return 'มีลายเซ็น';
+  const name = 'ลายเซ็น-' + (p.name || p.id) + '-' + (p.signed_at || '').slice(0, 19).replace(/[:T]/g, '') + '.' + m[1].split('/')[1];
+  const f = folder_();
+  const same = f.getFilesByName(name);
+  if (same.hasNext()) return same.next().getUrl();
+  return f.createFile(Utilities.newBlob(Utilities.base64Decode(m[2]), m[1], name)).getUrl();
 }
-
-function today_() { return Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd'); }
-
-function out_(o) { return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
