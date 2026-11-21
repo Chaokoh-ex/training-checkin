@@ -36,12 +36,12 @@ h1{font-size:clamp(32px,5vw,48px);line-height:1.08;margin:0 0 6px;text-wrap:bala
 .legend b{font-family:Mitr,sans-serif;font-weight:500}
 .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-inline-end:6px}
 .scene{position:relative;min-height:300px}.scene svg{position:absolute;inset:0;width:100%;height:100%}
-.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 14px;position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 0}
 .search{flex:1 1 240px;display:flex;align-items:center;gap:8px;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:0 12px;min-height:46px}
 .search input{border:0;background:none;color:var(--ink);font:inherit;font-size:16px;flex:1;outline:none;min-height:42px}
 .search:focus-within{border-color:var(--green)}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
-button{font:inherit;cursor:pointer;color:inherit}
+button{font:inherit;cursor:pointer;color:inherit;touch-action:manipulation}
 .chip{min-height:44px;padding:0 14px;border-radius:999px;border:2px solid var(--line);background:var(--card)}
 .chip[aria-pressed=true]{background:var(--green);border-color:var(--green);color:#fff}
 .btn{min-height:44px;padding:0 16px;border-radius:12px;border:0;background:var(--green);color:#fff;display:inline-flex;gap:8px;align-items:center;font-family:Mitr,sans-serif}
@@ -66,12 +66,12 @@ svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke
 .undo{border:0;background:none;color:var(--soft);min-height:44px;min-width:44px;border-radius:10px}
 .empty{padding:40px;text-align:center;color:var(--soft)}
 .foot{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;margin-top:16px}
-dialog{border:0;border-radius:22px;padding:0;background:var(--card);color:var(--ink);width:min(560px,94vw);box-shadow:0 20px 60px #0004}
+dialog{border:0;border-radius:22px;padding:0;background:var(--card);color:var(--ink);width:min(560px,94vw);max-height:94dvh;overflow:auto;box-shadow:0 20px 60px #0004}
 dialog::backdrop{background:#1d3b2999}
 .dlg{padding:20px}
 .dlg h2{margin:0 0 2px;font-size:22px}
-.pad{position:relative;background:#fff;border:2px dashed #9cc9a6;border-radius:16px;height:220px;margin:14px 0;touch-action:none}
-.pad canvas{position:absolute;inset:0;width:100%;height:100%;border-radius:14px}
+.pad{position:relative;background:#fff;border:2px dashed #9cc9a6;border-radius:16px;height:clamp(170px,38dvh,260px);margin:14px 0;touch-action:none;user-select:none;-webkit-user-select:none}
+.pad canvas{position:absolute;inset:0;width:100%;height:100%;border-radius:14px;touch-action:none}
 .pad .hint{position:absolute;inset:auto 0 12px;text-align:center;color:#9ab3a2;font-size:14px;pointer-events:none}
 .pad .base{position:absolute;left:24px;right:24px;bottom:40px;border-top:1px solid #d5e6d8;pointer-events:none}
 .acts{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
@@ -79,10 +79,23 @@ dialog::backdrop{background:#1d3b2999}
 .toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:12px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:9}
 .toast.on{opacity:1}
 .bigsig{background:#fff;border-radius:14px;margin:14px 0;height:220px;display:flex;align-items:center;justify-content:center}.bigsig img{max-width:100%;max-height:100%}
-@media(max-width:820px){.hero .wrap{grid-template-columns:1fr}.scene{min-height:240px;order:-1}}
+@media(max-width:820px){.hero .wrap{grid-template-columns:1fr}.scene{min-height:200px;order:-1}}
+@media(min-width:601px) and (max-width:820px){.hero .wrap{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}.scene{order:0;min-height:230px}}
+@media(max-width:600px){
+  .hero{padding-top:12px;padding-bottom:18px}.scene{min-height:130px}
+  h1{font-size:28px}.sub{margin-bottom:12px;font-size:15px}
+  .meter{padding:14px 16px;border-radius:16px}.big{font-size:40px}.bar{margin:10px 0 8px}
+  .band{padding-inline:12px}.sheet{border-radius:16px}
+  .tools{gap:8px}.chips{flex-wrap:nowrap;overflow-x:auto;width:100%;padding-bottom:2px}.chip{flex:none}
+  .row .dash{display:none}
+  .acts{display:grid;grid-template-columns:1fr 1fr}.acts .btn{justify-content:center}.acts .btn:last-child{grid-column:1/-1}
+  .foot>span:last-child{display:grid!important;grid-template-columns:1fr;width:100%}.foot .btn{justify-content:center}
+  .dlg{padding:16px}
+}
+@media(max-height:500px) and (orientation:landscape){.scene{display:none}.hero .wrap{grid-template-columns:1fr}}
 @media(max-width:700px){.row.head{display:none}.row{grid-template-columns:32px minmax(0,1fr);gap:8px 10px}.row>.seg,.row>.sigc{grid-column:2}.no{text-align:left;padding-top:2px}}
 @media(prefers-reduced-motion:reduce){.bar i,.toast{transition:none}#sway{animation:none!important}}
-.ro #addBtn,.ro #reSign,.ro #shareBtn{display:none}
+.ro #addBtn,.ro #reSign,.ro #shareBtn,.ro #syncBtn{display:none!important}
 .badge{display:inline-flex;align-items:center;gap:4px;min-height:36px;padding:0 14px;border-radius:999px;font-family:Mitr,sans-serif;font-size:15px}
 .badge.P{background:var(--greenbg);color:var(--green)}.badge.A{background:var(--coralbg);color:var(--coral)}.badge.U{background:var(--bg);color:var(--soft)}
 .rotag{display:inline-block;margin-top:10px;padding:4px 12px;border-radius:999px;background:var(--card);color:var(--soft);font-size:14px}
@@ -163,6 +176,7 @@ dialog::backdrop{background:#1d3b2999}
 <span style="display:flex;gap:8px;flex-wrap:wrap">
 <button class="btn ghost" id="addBtn"><svg class="i" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>เพิ่มผู้เข้าอบรม</button>
 <button class="btn ghost" id="shareBtn"><svg class="i" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>ลิงก์ดูอย่างเดียว</button>
+<button class="btn ghost" id="syncBtn" hidden><svg class="i" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>ส่งทั้งหมดไป Google Sheet</button>
 <button class="btn ghost" id="copyBtn"><svg class="i" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>คัดลอกสรุปไป Excel</button>
 </span>
 </div>
@@ -192,12 +206,22 @@ dialog::backdrop{background:#1d3b2999}
 </form></dialog>
 <div class="toast" id="toast"></div>
 </div>
+<script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
 {
-const SUPABASE_URL='https://lxwykletjdcjkchjqpvt.supabase.co';
-const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx4d3lrbGV0amRjamtjaGpxcHZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUyMjc3OTgsImV4cCI6MjExMDgwMzc5OH0.ubsnApO_1TUk4HZfdKDetFYh0qJj0yxl5easLwCK12w';
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:false}});
+const CFG=Object.assign({SUPABASE_URL:'https://lxwykletjdcjkchjqpvt.supabase.co',
+  SUPABASE_ANON_KEY:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx4d3lrbGV0amRjamtjaGpxcHZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUyMjc3OTgsImV4cCI6MjExMDgwMzc5OH0.ubsnApO_1TUk4HZfdKDetFYh0qJj0yxl5easLwCK12w',
+  SHEET_URL:'',SHEET_TOKEN:''},window.CHECKIN_CONFIG||{});
+const sb=supabase.createClient(CFG.SUPABASE_URL,CFG.SUPABASE_ANON_KEY,{auth:{persistSession:false}});
+const device=()=>{const w=Math.min(screen.width,screen.height),t=matchMedia('(pointer:coarse)').matches;return !t?'คอมพิวเตอร์':w<600?'มือถือ':'แท็บเล็ต'};
+let courseName='';
+function toSheet(action,list){
+  if(!CFG.SHEET_URL)return Promise.resolve();
+  const body=JSON.stringify({token:CFG.SHEET_TOKEN,action,course:courseName,device:device(),
+    people:list.map(x=>({id:x.id,no:S.people.indexOf(x)+1,prefix:x.p,name:x.n,company:x.c,status:x.s,signed_at:x.t,signature:x.sig||''}))});
+  return fetch(CFG.SHEET_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body}).catch(()=>{});
+}
 const $=id=>document.getElementById(id);
 const KEY=new URLSearchParams(location.search).get('k')||'';
 let S={people:[]}, RO=true, filter='all', busy=false, cur=null, shareToken='';
@@ -215,7 +239,7 @@ async function load(first){
   const {data,error}=await sb.rpc('ck_get',{p_key:KEY});
   if(error){if(first)gate('เชื่อมต่อฐานข้อมูลไม่ได้ ลองรีเฟรชอีกครั้ง');return}
   if(!data){gate('ลิงก์นี้ไม่ถูกต้อง หรือรอบอบรมถูกลบแล้ว');return}
-  S={people:data.people}; RO=!data.can_edit; shareToken=data.share_token||'';
+  S={people:data.people}; RO=!data.can_edit; shareToken=data.share_token||''; courseName=data.course||data.title||'';
   if(first){
     document.body.classList.toggle('ro',RO);
     $('root').hidden=false;
@@ -223,6 +247,7 @@ async function load(first){
     $('today').textContent=[data.course||data.title,fmtD(data.event_date)].filter(Boolean).join(' · ');
     if(RO){const t=document.createElement('div');t.className='rotag';t.textContent='มุมมองตรวจสอบ · ดูอย่างเดียว';$('today').after(t)}
     $('saveNote').textContent=NOTE();
+    $('syncBtn').hidden=RO||!CFG.SHEET_URL;
   }
   render();
 }
@@ -241,7 +266,7 @@ function render(){
    <div class="sigc">${x.s==='P'&&x.sig?`<button class="sig" data-a="view" aria-label="ดูลายเซ็น"><img src="${esc(x.sig)}" alt=""></button><span class="tm">${fmt(x.t)}</span>`
      :x.s==='P'&&!RO?`<button class="sign" data-a="P">${ic('pen')}เซ็นชื่อ</button>`
      :x.s==='P'?`<span class="muted">มา</span>`
-     :x.s==='A'?`<span class="muted">ไม่ได้เข้าอบรม</span>`:`<span class="muted">—</span>`}
+     :x.s==='A'?`<span class="muted">ไม่ได้เข้าอบรม</span>`:`<span class="muted dash">—</span>`}
      ${x.s&&!RO?`<button class="undo" data-a="U" aria-label="ล้างสถานะ" title="ล้างสถานะ">${ic('undo')}</button>`:''}</div>
   </div>`).join(''):`<div class="empty">${n?'ไม่พบรายชื่อที่ค้นหา':'ยังไม่มีรายชื่อ'}</div>`;
 }
@@ -254,6 +279,7 @@ async function setStatus(p,status,sig,msg){
   busy=false;$('saveNote').textContent=NOTE();
   if(error){Object.assign(p,before);render();toast('บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง');return}
   toast(msg);
+  toSheet(status==='P'?'มา':status==='A'?'ไม่มา':'ล้างสถานะ',[p]);
 }
 const byId=id=>S.people.find(x=>x.id===id);
 
@@ -298,7 +324,8 @@ $('addForm').addEventListener('submit',async e=>{e.preventDefault();const v=$('a
   const m=v.match(/^(นางสาว|นาง|นาย|Mr\.|Ms\.|Mrs\.)\s*(.*)$/);
   const {error}=await sb.rpc('ck_add',{p_key:KEY,p_prefix:m?m[1]:'',p_name:m?m[2]:v,p_company:$('aCo').value.trim()});
   if(error){toast('เพิ่มไม่สำเร็จ ลองใหม่อีกครั้ง');return}
-  $('dAdd').close();toast('เพิ่ม '+v+' แล้ว');load()});
+  $('dAdd').close();toast('เพิ่ม '+v+' แล้ว');busy=false;await load();const np=S.people[S.people.length-1];if(np)toSheet('เพิ่มชื่อ',[np])});
+$('syncBtn').onclick=async()=>{$('syncBtn').disabled=true;await toSheet('ซิงก์ทั้งหมด',S.people);$('syncBtn').disabled=false;toast('ส่งข้อมูล '+S.people.length+' คนไป Google Sheet แล้ว')};
 
 // share view-only link
 $('shareBtn').onclick=()=>{$('shareUrl').value=location.origin+location.pathname+'?k='+shareToken;$('dShare').showModal()};
