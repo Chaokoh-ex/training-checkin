@@ -4,24 +4,123 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>เช็คชื่อผู้เข้าอบรม</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23d4eecb'/%3E%3Cpath d='M17 28c-1-6-3-11-1-17' stroke='%23a26b3f' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3Cpath d='M16 11c3-5 9-6 12-2-4-1-8 0-12 2zM16 11c-3-5-9-6-12-2 4-1 8 0 12 2z' fill='%234fa765'/%3E%3Ccircle cx='16' cy='13' r='3' fill='%238a5a34'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<style id="css">
+/* VOICE: friendly, calm, a front-desk sign-in sheet at a seaside workshop
+   IDEA: a paper sign-in clipboard under a cartoon coconut palm
+   PICTURE: smiling coconut palm on a sand dune with a live attendance meter
+   COLOUR and TYPE: pastel mint ground, deep palm green ink, coconut brown, coral for absent; Mitr + Sarabun
+   LAYOUT: hero scene with counts, then the sign-in list as one wide sheet */
+:root{color-scheme:light dark;
+--bg:light-dark(#eef8ea,#12241a);--band:light-dark(#d4eecb,#1a3324);--card:light-dark(#ffffff,#1d3a29);
+--ink:light-dark(#1d3b29,#e5f4e0);--soft:light-dark(#557a63,#9fc4ab);--line:light-dark(#cfe5c7,#2c5039);
+--green:light-dark(#3f9a5a,#7fd39a);--greenbg:light-dark(#dff3d8,#24502f);--coral:light-dark(#e2694a,#ff9c80);--coralbg:light-dark(#fde5dc,#4a2a22);
+--sand:light-dark(#f3e6c4,#3a3a2a);--brown:#a26b3f}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Sarabun,"Noto Sans Thai",system-ui,sans-serif;overflow-x:clip}
+h1,h2,.mitr{font-family:Mitr,Sarabun,sans-serif;font-weight:500}
+.band{padding:clamp(24px,4vw,56px) max(5vw,16px)}
+.wrap{max-width:1180px;margin:0 auto}
+.hero{background:var(--band)}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:24px;align-items:center}
+h1{font-size:clamp(32px,5vw,48px);line-height:1.08;margin:0 0 6px;text-wrap:balance}
+.sub{color:var(--soft);margin:0 0 20px}
+.meter{background:var(--card);border-radius:20px;padding:18px 20px;box-shadow:0 6px 0 var(--line)}
+.big{font-family:Mitr,sans-serif;font-size:clamp(40px,7vw,60px);line-height:1;color:var(--green)}
+.big small{font-size:20px;color:var(--soft)}
+.bar{display:flex;height:14px;border-radius:9px;overflow:hidden;background:var(--line);margin:14px 0 12px}
+.bar i{display:block;transition:width .4s}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:15px}
+.legend b{font-family:Mitr,sans-serif;font-weight:500}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-inline-end:6px}
+.scene{position:relative;min-height:300px}.scene svg{position:absolute;inset:0;width:100%;height:100%}
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+.search{flex:1 1 240px;display:flex;align-items:center;gap:8px;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:0 12px;min-height:46px}
+.search input{border:0;background:none;color:var(--ink);font:inherit;font-size:16px;flex:1;outline:none;min-height:42px}
+.search:focus-within{border-color:var(--green)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;cursor:pointer;color:inherit}
+.chip{min-height:44px;padding:0 14px;border-radius:999px;border:2px solid var(--line);background:var(--card)}
+.chip[aria-pressed=true]{background:var(--green);border-color:var(--green);color:#fff}
+.btn{min-height:44px;padding:0 16px;border-radius:12px;border:0;background:var(--green);color:#fff;display:inline-flex;gap:8px;align-items:center;font-family:Mitr,sans-serif}
+.btn.ghost{background:var(--card);color:var(--ink);border:2px solid var(--line)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--coral);outline-offset:2px}
+svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.sheet{background:var(--card);border-radius:20px;overflow:hidden;box-shadow:0 6px 0 var(--line)}
+.row{display:grid;grid-template-columns:44px minmax(0,1.5fr) 190px 200px;gap:12px;align-items:center;padding:12px 16px;border-top:1px solid var(--line)}
+.row.head{border:0;background:var(--greenbg);font-family:Mitr,sans-serif;font-size:14px;color:var(--soft);padding-block:10px}
+.no{font-family:Mitr,sans-serif;color:var(--soft);text-align:right}
+.nm{font-weight:600}.co{font-size:14px;color:var(--soft)}
+.seg{display:flex;gap:6px}
+.seg button{flex:1;min-height:44px;border-radius:12px;border:2px solid var(--line);background:none;display:inline-flex;justify-content:center;align-items:center;gap:4px;font-family:Mitr,sans-serif}
+.seg .y[aria-pressed=true]{background:var(--green);border-color:var(--green);color:#fff}
+.seg .n[aria-pressed=true]{background:var(--coral);border-color:var(--coral);color:#fff}
+.sigc{display:flex;align-items:center;gap:8px}
+.sig{background:#fff;border:1px solid var(--line);border-radius:10px;height:52px;width:130px;padding:2px;display:block}
+.sig img{width:100%;height:100%;object-fit:contain}
+.tm{font-size:13px;color:var(--soft);white-space:nowrap}
+.sign{min-height:44px;padding:0 12px;border-radius:12px;border:2px dashed var(--green);background:none;color:var(--green);display:inline-flex;gap:6px;align-items:center}
+.muted{color:var(--soft);font-size:14px}
+.undo{border:0;background:none;color:var(--soft);min-height:44px;min-width:44px;border-radius:10px}
+.empty{padding:40px;text-align:center;color:var(--soft)}
+.foot{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;margin-top:16px}
+dialog{border:0;border-radius:22px;padding:0;background:var(--card);color:var(--ink);width:min(560px,94vw);box-shadow:0 20px 60px #0004}
+dialog::backdrop{background:#1d3b2999}
+.dlg{padding:20px}
+.dlg h2{margin:0 0 2px;font-size:22px}
+.pad{position:relative;background:#fff;border:2px dashed #9cc9a6;border-radius:16px;height:220px;margin:14px 0;touch-action:none}
+.pad canvas{position:absolute;inset:0;width:100%;height:100%;border-radius:14px}
+.pad .hint{position:absolute;inset:auto 0 12px;text-align:center;color:#9ab3a2;font-size:14px;pointer-events:none}
+.pad .base{position:absolute;left:24px;right:24px;bottom:40px;border-top:1px solid #d5e6d8;pointer-events:none}
+.acts{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.fld{display:grid;gap:4px;margin:10px 0}.fld input{font:inherit;font-size:16px;min-height:46px;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--ink);padding:0 12px}
+.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:12px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:9}
+.toast.on{opacity:1}
+.bigsig{background:#fff;border-radius:14px;margin:14px 0;height:220px;display:flex;align-items:center;justify-content:center}.bigsig img{max-width:100%;max-height:100%}
+@media(max-width:820px){.hero .wrap{grid-template-columns:1fr}.scene{min-height:240px;order:-1}}
+@media(max-width:700px){.row.head{display:none}.row{grid-template-columns:32px minmax(0,1fr);gap:8px 10px}.row>.seg,.row>.sigc{grid-column:2}.no{text-align:left;padding-top:2px}}
+@media(prefers-reduced-motion:reduce){.bar i,.toast{transition:none}#sway{animation:none!important}}
+.ro #addBtn,.ro #reSign,.ro #shareBtn{display:none}
+.badge{display:inline-flex;align-items:center;gap:4px;min-height:36px;padding:0 14px;border-radius:999px;font-family:Mitr,sans-serif;font-size:15px}
+.badge.P{background:var(--greenbg);color:var(--green)}.badge.A{background:var(--coralbg);color:var(--coral)}.badge.U{background:var(--bg);color:var(--soft)}
+.rotag{display:inline-block;margin-top:10px;padding:4px 12px;border-radius:999px;background:var(--card);color:var(--soft);font-size:14px}
+.gate{max-width:520px;margin:12vh auto;padding:28px;background:var(--card);border-radius:24px;text-align:center;box-shadow:0 8px 0 var(--line)}
+.gate h1{font-size:30px}
+#sway{transform-origin:205px 120px;animation:sway 5s ease-in-out infinite}
+@keyframes sway{50%{transform:rotate(2.5deg)}}
+</style>
 </head>
 <body>
-<!-- shared drawing: cartoon coconut palm -->
-<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<div id="gate" class="gate" hidden><h1>เปิดผ่านลิงก์ที่ได้รับ</h1><p class="sub" id="gateMsg">หน้านี้ต้องเปิดจากลิงก์เช็คชื่อหรือลิงก์ตรวจสอบที่ผู้ดูแลส่งให้</p></div>
+<div id="root" hidden>
+<section class="band hero"><div class="wrap">
+<div>
+<h1 id="hTitle">เช็คชื่อผู้เข้าอบรม</h1>
+<p class="sub" id="today"></p>
+<div class="meter">
+<div class="big"><span id="nPresent">0</span><small> / <span id="nAll">0</span> คนมาแล้ว</small></div>
+<div class="bar"><i id="bP" style="background:var(--green)"></i><i id="bA" style="background:var(--coral)"></i></div>
+<div class="legend">
+<span><i class="dot" style="background:var(--green)"></i>มา <b id="cP">0</b></span>
+<span><i class="dot" style="background:var(--coral)"></i>ไม่มา <b id="cA">0</b></span>
+<span><i class="dot" style="background:var(--line)"></i>ยังไม่เช็ค <b id="cU">0</b></span>
+</div>
+</div>
+</div>
+<div class="scene" aria-hidden="true">
+<svg viewBox="0 0 420 300" preserveAspectRatio="xMidYMax meet">
 <defs>
 <linearGradient id="lf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9fdc8f"/><stop offset="1" stop-color="#4fa765"/></linearGradient>
 <linearGradient id="tr" x1="0" x2="1"><stop offset="0" stop-color="#c08a58"/><stop offset="1" stop-color="#8d5a32"/></linearGradient>
 <path id="leaf" d="M0 0C30-34 86-40 128-8 112-12 98-10 88-4 74-18 50-20 34-8 22-12 10-8 0 0Z" fill="url(#lf)"/>
-<symbol id="scene" viewBox="0 0 420 300">
-<circle cx="340" cy="70" r="48" fill="#ffe9a8" opacity=".35"/><circle cx="340" cy="70" r="34" fill="#ffe9a8"/>
+</defs>
+<circle cx="340" cy="70" r="34" fill="#ffe9a8"/><circle cx="340" cy="70" r="48" fill="#ffe9a8" opacity=".35"/>
 <g fill="#fff" opacity=".85"><ellipse cx="80" cy="60" rx="34" ry="12"/><ellipse cx="104" cy="52" rx="22" ry="12"/><ellipse cx="290" cy="130" rx="26" ry="9"/></g>
 <path d="M0 262Q40 252 80 262T160 262T240 262T320 262T420 262V300H0Z" fill="#a9dbe0"/>
 <path d="M60 300Q120 232 220 236T380 300Z" fill="#f3e2b6"/><path d="M120 300Q190 252 300 262T380 300Z" fill="#e8d39d" opacity=".6"/>
-<g class="sway">
+<g id="sway">
 <path d="M218 262C214 214 196 166 207 118" stroke="url(#tr)" stroke-width="24" fill="none" stroke-linecap="round"/>
 <g stroke="#7a4b28" stroke-width="2" opacity=".5" fill="none"><path d="M204 240h26M201 214h24M199 188h22M200 162h20M203 138h18"/></g>
 <g transform="translate(207 116)">
@@ -36,70 +135,13 @@
 <g fill="#f49b8b" opacity=".7"><circle cx="198" cy="144" r="2.5"/><circle cx="218" cy="144" r="2.5"/></g>
 </g>
 <g transform="translate(280 222) rotate(8)">
-<rect width="58" height="62" rx="7" fill="#c88f5a"/><rect x="5" y="9" width="48" height="49" rx="4" fill="#fff"/>
+<rect x="0" y="0" width="58" height="62" rx="7" fill="#c88f5a"/><rect x="5" y="9" width="48" height="49" rx="4" fill="#fff"/>
 <rect x="19" y="-4" width="20" height="10" rx="3" fill="#7fbf8d"/>
 <g stroke="#9cc9a6" stroke-width="3" stroke-linecap="round"><path d="M12 22h30M12 33h30M12 44h20"/></g>
 <path d="M38 42l4 4 8-9" stroke="#3f9a5a" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
 </g>
-</symbol>
-</defs>
 </svg>
-
-<!-- loading -->
-<div id="vLoading" class="center"><div class="spin"></div></div>
-
-<!-- login -->
-<main id="vLogin" class="login" hidden>
-<div class="lcard">
-<svg class="lscene" viewBox="0 0 420 300" aria-hidden="true"><use href="#scene"/></svg>
-<h1>เช็คชื่อผู้เข้าอบรม</h1>
-<p class="sub">เข้าสู่ระบบด้วยบัญชี Gmail ของผู้ดูแลเพื่อเช็คชื่อและจัดการรายชื่อ</p>
-<button class="gbtn" id="gLogin"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.4h6.5a5.6 5.6 0 0 1-2.4 3.6v3h3.9c2.2-2.1 3.5-5.1 3.5-8.7z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 7.9-2.9l-3.9-3c-1 .7-2.4 1.2-4 1.2-3.1 0-5.7-2.1-6.6-4.9h-4v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.4 14.4a7.2 7.2 0 0 1 0-4.7V6.6h-4a12 12 0 0 0 0 10.8z"/><path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.4 6.6l4 3.1C6.3 6.9 8.9 4.8 12 4.8z"/></svg>เข้าสู่ระบบด้วย Google</button>
-<p class="muted small">เฉพาะบัญชีที่ได้รับสิทธิ์เท่านั้น</p>
 </div>
-</main>
-
-<!-- denied -->
-<main id="vDenied" class="login" hidden>
-<div class="lcard">
-<svg class="lscene" viewBox="0 0 420 300" aria-hidden="true"><use href="#scene"/></svg>
-<h1>บัญชีนี้ไม่มีสิทธิ์</h1>
-<p class="sub"><b id="deniedEmail"></b> ยังไม่ได้รับสิทธิ์ใช้งานระบบเช็คชื่อ กรุณาเข้าสู่ระบบด้วยบัญชีผู้ดูแล</p>
-<button class="btn" id="deniedOut">ออกจากระบบแล้วลองใหม่</button>
-</div>
-</main>
-
-<!-- app (admin + public view share this) -->
-<div id="vApp" hidden>
-<header class="top">
-<div class="brand"><svg viewBox="0 0 420 300" aria-hidden="true"><use href="#scene"/></svg><span class="mitr">เช็คชื่ออบรม</span></div>
-<div class="topr adminOnly">
-<span class="who" id="who"></span>
-<button class="btn ghost sm" id="logout"><svg class="i" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>ออกจากระบบ</button>
-</div>
-<div class="topr viewOnly"><span class="rotag">มุมมองตรวจสอบ · ดูอย่างเดียว</span></div>
-</header>
-
-<section class="band hero"><div class="wrap">
-<div>
-<div class="sessbar adminOnly">
-<label class="sel"><span class="sr">เลือกรอบอบรม</span><select id="sessSel"></select></label>
-<button class="ibtn" id="sessEdit" title="แก้ไขรอบอบรม" aria-label="แก้ไขรอบอบรม"><svg class="i" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
-<button class="ibtn" id="sessNew" title="เพิ่มรอบอบรม" aria-label="เพิ่มรอบอบรม"><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></svg></button>
-</div>
-<h1 id="hTitle">เช็คชื่อผู้เข้าอบรม</h1>
-<p class="sub" id="hSub"></p>
-<div class="meter">
-<div class="big"><span id="nPresent">0</span><small> / <span id="nAll">0</span> คนมาแล้ว</small></div>
-<div class="bar"><i id="bP" class="bp"></i><i id="bA" class="ba"></i></div>
-<div class="legend">
-<span><i class="dot dp"></i>มา <b id="cP">0</b></span>
-<span><i class="dot da"></i>ไม่มา <b id="cA">0</b></span>
-<span><i class="dot du"></i>ยังไม่เช็ค <b id="cU">0</b></span>
-</div>
-</div>
-</div>
-<div class="scene" aria-hidden="true"><svg viewBox="0 0 420 300" preserveAspectRatio="xMidYMax meet"><use href="#scene"/></svg></div>
 </div></section>
 
 <section class="band"><div class="wrap">
@@ -109,93 +151,170 @@
 <button class="chip" data-f="all" aria-pressed="true">ทั้งหมด</button>
 <button class="chip" data-f="P" aria-pressed="false">มาแล้ว</button>
 <button class="chip" data-f="A" aria-pressed="false">ไม่มา</button>
-<button class="chip" data-f="U" aria-pressed="false">ยังไม่เช็ค</button>
+<button class="chip" data-f="" aria-pressed="false">ยังไม่เช็ค</button>
 </div>
 </div>
 <div class="sheet">
 <div class="row head"><span class="no">#</span><span>รายชื่อ</span><span>มา / ไม่มา</span><span>ลายเซ็น</span></div>
-<div id="list"><div class="empty">กำลังโหลด…</div></div>
+<div id="list"></div>
 </div>
 <div class="foot">
-<span class="muted" id="note"></span>
-<span class="acts">
-<button class="btn ghost adminOnly" id="addBtn"><svg class="i" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>เพิ่มชื่อ</button>
-<button class="btn ghost adminOnly" id="importBtn"><svg class="i" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/></svg>นำเข้าจาก Excel</button>
-<input type="file" id="importFile" accept=".xlsx,.xls,.csv" hidden>
-<button class="btn ghost" id="exportBtn"><svg class="i" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>ดาวน์โหลด Excel</button>
-<button class="btn ghost" id="printBtn"><svg class="i" viewBox="0 0 24 24"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>พิมพ์ / PDF</button>
-<button class="btn adminOnly" id="shareBtn"><svg class="i" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>ลิงก์สำหรับตรวจสอบ</button>
+<span class="muted" id="saveNote">กำลังโหลด…</span>
+<span style="display:flex;gap:8px;flex-wrap:wrap">
+<button class="btn ghost" id="addBtn"><svg class="i" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>เพิ่มผู้เข้าอบรม</button>
+<button class="btn ghost" id="shareBtn"><svg class="i" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>ลิงก์ดูอย่างเดียว</button>
+<button class="btn ghost" id="copyBtn"><svg class="i" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>คัดลอกสรุปไป Excel</button>
 </span>
 </div>
 </div></section>
-</div>
 
-<!-- print sheet -->
-<div id="printArea"></div>
-
-<!-- dialogs -->
-<dialog id="dSign"><div class="dlg">
+<dialog id="dSign"><form class="dlg" method="dialog">
 <h2>เซ็นชื่อเข้าอบรม</h2><div class="muted" id="sName"></div>
 <div class="pad"><canvas id="pad"></canvas><div class="base"></div><div class="hint" id="hint">เซ็นชื่อด้วยนิ้วหรือเมาส์ในกรอบนี้</div></div>
-<div class="acts end">
-<button class="btn ghost" id="clr"><svg class="i" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>ล้าง</button>
-<button class="btn ghost" data-close>ยกเลิก</button>
-<button class="btn" id="saveSig"><svg class="i" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>บันทึกลายเซ็น</button>
-</div></div></dialog>
+<div class="acts">
+<button type="button" class="btn ghost" id="clr"><svg class="i" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>ล้าง</button>
+<button type="button" class="btn ghost" id="cancel">ยกเลิก</button>
+<button type="button" class="btn" id="saveSig"><svg class="i" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>บันทึกลายเซ็น</button>
+</div></form></dialog>
 
 <dialog id="dView"><div class="dlg">
 <h2 id="vName"></h2><div class="muted" id="vTime"></div>
 <div class="bigsig"><img id="vImg" alt="ลายเซ็น"></div>
-<div class="acts end"><button class="btn ghost adminOnly" id="reSign">เซ็นใหม่</button><button class="btn" data-close>ปิด</button></div>
+<div class="acts"><button class="btn ghost" id="reSign">เซ็นใหม่</button><button class="btn" id="vClose">ปิด</button></div>
 </div></dialog>
 
-<dialog id="dPerson"><form class="dlg" id="personForm">
-<h2 id="pTitle">เพิ่มผู้เข้าอบรม</h2>
-<div class="grid2">
-<label class="fld">คำนำหน้า<input id="pPrefix" list="prefixes" placeholder="นาย / นางสาว"></label>
-<label class="fld">ชื่อ-นามสกุล<input id="pName" required></label>
+<dialog id="dShare"><div class="dlg"><h2>ลิงก์สำหรับตรวจสอบ</h2><p class="muted">คนที่ได้ลิงก์นี้ดูรายชื่อ สถานะ และลายเซ็นได้ แต่แก้ไขไม่ได้</p><label class="fld"><input id="shareUrl" readonly aria-label="ลิงก์"></label><div class="acts"><button class="btn ghost" id="shClose">ปิด</button><button class="btn" id="shCopy">คัดลอกลิงก์</button></div></div></dialog>
+<dialog id="dAdd"><form class="dlg" id="addForm">
+<h2>เพิ่มผู้เข้าอบรม</h2>
+<label class="fld">คำนำหน้าและชื่อ-นามสกุล<input id="aName" required placeholder="เช่น นางสาว สมใจ ใจดี"></label>
+<label class="fld">บริษัท / หน่วยงาน<input id="aCo"></label>
+<div class="acts"><button type="button" class="btn ghost" id="aCancel">ยกเลิก</button><button class="btn">เพิ่ม</button></div>
+</form></dialog>
+<div class="toast" id="toast"></div>
 </div>
-<datalist id="prefixes"><option value="นาย"><option value="นางสาว"><option value="นาง"><option value="Mr."><option value="Ms."></datalist>
-<label class="fld">บริษัท / หน่วยงาน<input id="pCo"></label>
-<div class="acts between">
-<button type="button" class="btn danger ghost" id="pDelete"><svg class="i" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>ลบชื่อนี้</button>
-<span class="acts"><button type="button" class="btn ghost" data-close>ยกเลิก</button><button class="btn">บันทึก</button></span>
-</div></form></dialog>
-
-<dialog id="dSess"><form class="dlg" id="sessForm">
-<h2 id="sfTitle">รอบอบรม</h2>
-<label class="fld">ชื่อรอบอบรม<input id="sfName" required placeholder="เช่น รอบอบรม 2"></label>
-<label class="fld">หลักสูตร / หัวข้อ<input id="sfCourse"></label>
-<label class="fld">วันที่อบรม<input id="sfDate" type="date"></label>
-<div class="acts between">
-<button type="button" class="btn danger ghost" id="sfDelete">ลบรอบนี้</button>
-<span class="acts"><button type="button" class="btn ghost" data-close>ยกเลิก</button><button class="btn">บันทึก</button></span>
-</div></form></dialog>
-
-<dialog id="dShare"><div class="dlg">
-<h2>ลิงก์สำหรับตรวจสอบ</h2>
-<p class="muted">ผู้ที่ได้ลิงก์นี้จะเห็นรายชื่อ สถานะ และลายเซ็นของรอบนี้ได้โดยไม่ต้องล็อกอิน แต่แก้ไขอะไรไม่ได้</p>
-<label class="fld"><span class="sr">ลิงก์</span><input id="shareUrl" readonly></label>
-<div class="acts end"><button class="btn ghost" data-close>ปิด</button><button class="btn" id="copyShare">คัดลอกลิงก์</button></div>
-</div></dialog>
-
-<dialog id="dImport"><div class="dlg">
-<h2>นำเข้ารายชื่อจาก Excel</h2>
-<p class="muted" id="impInfo"></p>
-<div class="implist" id="impList"></div>
-<div class="acts end"><button class="btn ghost" data-close>ยกเลิก</button><button class="btn" id="impGo">นำเข้า</button></div>
-</div></dialog>
-
-<dialog id="dConfirm"><div class="dlg">
-<h2 id="cfTitle"></h2><p id="cfText" class="muted"></p>
-<div class="acts end"><button class="btn ghost" data-close>ยกเลิก</button><button class="btn danger" id="cfGo">ยืนยัน</button></div>
-</div></dialog>
-
-<div class="toast" id="toast" role="status"></div>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="config.js"></script>
-<script src="app.js"></script>
+<script>
+{
+const SUPABASE_URL='https://lxwykletjdcjkchjqpvt.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx4d3lrbGV0amRjamtjaGpxcHZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUyMjc3OTgsImV4cCI6MjExMDgwMzc5OH0.ubsnApO_1TUk4HZfdKDetFYh0qJj0yxl5easLwCK12w';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:false}});
+const $=id=>document.getElementById(id);
+const KEY=new URLSearchParams(location.search).get('k')||'';
+let S={people:[]}, RO=true, filter='all', busy=false, cur=null, shareToken='';
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const I={check:'<path d="M20 6 9 17l-5-5"/>',x:'<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',pen:'<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>',undo:'<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>'};
+const ic=k=>`<svg class="i" viewBox="0 0 24 24">${I[k]}</svg>`;
+const toast=m=>{const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('on'),2600)};
+const fmt=iso=>iso?new Date(iso).toLocaleString('th-TH',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'';
+const fmtD=d=>d?new Date(d+'T00:00').toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):new Date().toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+const NOTE=()=>RO?'มุมมองตรวจสอบ: ดูรายชื่อ สถานะ และลายเซ็นได้ แต่แก้ไขไม่ได้ · อัปเดตอัตโนมัติ':'กด “มา” แล้วเซ็นชื่อในกรอบ ระบบบันทึกทันทีและทุกเครื่องเห็นตรงกัน';
+const anyOpen=()=>[...document.querySelectorAll('dialog')].some(d=>d.open);
+
+async function load(first){
+  if(!first&&(busy||anyOpen()))return;
+  const {data,error}=await sb.rpc('ck_get',{p_key:KEY});
+  if(error){if(first)gate('เชื่อมต่อฐานข้อมูลไม่ได้ ลองรีเฟรชอีกครั้ง');return}
+  if(!data){gate('ลิงก์นี้ไม่ถูกต้อง หรือรอบอบรมถูกลบแล้ว');return}
+  S={people:data.people}; RO=!data.can_edit; shareToken=data.share_token||'';
+  if(first){
+    document.body.classList.toggle('ro',RO);
+    $('root').hidden=false;
+    $('hTitle').textContent='เช็คชื่อผู้เข้าอบรม';
+    $('today').textContent=[data.course||data.title,fmtD(data.event_date)].filter(Boolean).join(' · ');
+    if(RO){const t=document.createElement('div');t.className='rotag';t.textContent='มุมมองตรวจสอบ · ดูอย่างเดียว';$('today').after(t)}
+    $('saveNote').textContent=NOTE();
+  }
+  render();
+}
+function gate(msg){$('gateMsg').textContent=msg;$('gate').hidden=false;$('root').hidden=true}
+
+function render(){
+  const P=S.people, nP=P.filter(x=>x.s==='P').length, nA=P.filter(x=>x.s==='A').length, n=P.length;
+  $('nPresent').textContent=nP;$('nAll').textContent=n;$('cP').textContent=nP;$('cA').textContent=nA;$('cU').textContent=n-nP-nA;
+  $('bP').style.width=(n?nP/n*100:0)+'%';$('bA').style.width=(n?nA/n*100:0)+'%';
+  const q=$('q').value.trim().toLowerCase();
+  const rows=P.map((x,i)=>({x,i})).filter(({x})=>(filter==='all'||x.s===filter)&&(!q||(x.p+x.n+x.c).toLowerCase().includes(q)));
+  $('list').innerHTML=rows.length?rows.map(({x,i})=>`<div class="row" data-id="${x.id}">
+   <span class="no">${i+1}</span>
+   <div><div class="nm">${esc(x.p)} ${esc(x.n)}</div><div class="co">${esc(x.c)}</div></div>
+   ${RO?`<div><span class="badge ${x.s||'U'}">${x.s==='P'?ic('check')+'มา':x.s==='A'?ic('x')+'ไม่มา':'ยังไม่เช็ค'}</span></div>`:`<div class="seg"><button class="y" data-a="P" aria-pressed="${x.s==='P'}">${ic('check')}มา</button><button class="n" data-a="A" aria-pressed="${x.s==='A'}">${ic('x')}ไม่มา</button></div>`}
+   <div class="sigc">${x.s==='P'&&x.sig?`<button class="sig" data-a="view" aria-label="ดูลายเซ็น"><img src="${esc(x.sig)}" alt=""></button><span class="tm">${fmt(x.t)}</span>`
+     :x.s==='P'&&!RO?`<button class="sign" data-a="P">${ic('pen')}เซ็นชื่อ</button>`
+     :x.s==='P'?`<span class="muted">มา</span>`
+     :x.s==='A'?`<span class="muted">ไม่ได้เข้าอบรม</span>`:`<span class="muted">—</span>`}
+     ${x.s&&!RO?`<button class="undo" data-a="U" aria-label="ล้างสถานะ" title="ล้างสถานะ">${ic('undo')}</button>`:''}</div>
+  </div>`).join(''):`<div class="empty">${n?'ไม่พบรายชื่อที่ค้นหา':'ยังไม่มีรายชื่อ'}</div>`;
+}
+
+async function setStatus(p,status,sig,msg){
+  const before={...p};
+  p.s=status||'';p.sig=status==='P'?(sig||''):'';p.t=status?new Date().toISOString():null;render();
+  busy=true;$('saveNote').textContent='กำลังบันทึก…';
+  const {error}=await sb.rpc('ck_set',{p_key:KEY,p_id:p.id,p_status:status,p_sig:status==='P'?sig:null});
+  busy=false;$('saveNote').textContent=NOTE();
+  if(error){Object.assign(p,before);render();toast('บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง');return}
+  toast(msg);
+}
+const byId=id=>S.people.find(x=>x.id===id);
+
+$('list').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-a]');if(!b)return;
+  const p=byId(+b.closest('.row').dataset.id), a=b.dataset.a;
+  if(a==='view')return openView(p);
+  if(RO)return;
+  if(a==='P'){if(p.s==='P'&&p.sig)return openView(p);openSign(p)}
+  else if(a==='A'){if(p.s!=='A')setStatus(p,'A',null,'บันทึก “ไม่มา” แล้ว')}
+  else if(a==='U')setStatus(p,null,null,'ล้างสถานะแล้ว');
+});
+$('chips').addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;filter=b.dataset.f;
+  for(const c of $('chips').children)c.setAttribute('aria-pressed',c===b);render()});
+$('q').addEventListener('input',render);
+
+// signature pad
+const cv=$('pad'), ctx=cv.getContext('2d');let drawing=false,inked=false,last=null;
+function sizePad(){const r=cv.getBoundingClientRect(),d=devicePixelRatio||1;cv.width=r.width*d;cv.height=r.height*d;ctx.setTransform(d,0,0,d,0,0);
+  ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='#17324a';ctx.fillStyle='#17324a';ctx.lineWidth=2.6;inked=false;$('hint').style.display=''}
+const pt=e=>{const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}};
+cv.addEventListener('pointerdown',e=>{e.preventDefault();drawing=true;last=pt(e);cv.setPointerCapture(e.pointerId);ctx.beginPath();ctx.arc(last.x,last.y,1.2,0,7);ctx.fill();inked=true;$('hint').style.display='none'});
+cv.addEventListener('pointermove',e=>{if(!drawing)return;const p=pt(e);ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(p.x,p.y);ctx.stroke();last=p});
+const up=()=>drawing=false;cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+function openSign(p){cur=p;$('sName').textContent=`${p.p} ${p.n} · ${p.c}`;$('dSign').showModal();requestAnimationFrame(sizePad)}
+$('clr').onclick=sizePad;$('cancel').onclick=()=>$('dSign').close();
+$('saveSig').onclick=async()=>{
+  if(!inked){toast('กรุณาเซ็นชื่อก่อนบันทึก');return}
+  const o=document.createElement('canvas');o.width=360;o.height=140;const g=o.getContext('2d');
+  g.fillStyle='#fff';g.fillRect(0,0,360,140);const k=Math.min(360/cv.width,140/cv.height);
+  g.drawImage(cv,(360-cv.width*k)/2,(140-cv.height*k)/2,cv.width*k,cv.height*k);
+  $('dSign').close();await setStatus(cur,'P',o.toDataURL('image/jpeg',.7),'เช็คชื่อ '+cur.n+' เรียบร้อย');
+};
+function openView(p){cur=p;$('vName').textContent=`${p.p} ${p.n}`;$('vTime').textContent=`${p.c} · เซ็นเมื่อ ${fmt(p.t)}`;$('vImg').src=p.sig;$('dView').showModal()}
+$('vClose').onclick=()=>$('dView').close();
+$('reSign').onclick=()=>{$('dView').close();openSign(cur)};
+
+// add person
+$('addBtn').onclick=()=>{$('addForm').reset();$('dAdd').showModal()};
+$('aCancel').onclick=()=>$('dAdd').close();
+$('addForm').addEventListener('submit',async e=>{e.preventDefault();const v=$('aName').value.trim();if(!v)return;
+  const m=v.match(/^(นางสาว|นาง|นาย|Mr\.|Ms\.|Mrs\.)\s*(.*)$/);
+  const {error}=await sb.rpc('ck_add',{p_key:KEY,p_prefix:m?m[1]:'',p_name:m?m[2]:v,p_company:$('aCo').value.trim()});
+  if(error){toast('เพิ่มไม่สำเร็จ ลองใหม่อีกครั้ง');return}
+  $('dAdd').close();toast('เพิ่ม '+v+' แล้ว');load()});
+
+// share view-only link
+$('shareBtn').onclick=()=>{$('shareUrl').value=location.origin+location.pathname+'?k='+shareToken;$('dShare').showModal()};
+$('shClose').onclick=()=>$('dShare').close();
+$('shCopy').onclick=async()=>{try{await navigator.clipboard.writeText($('shareUrl').value);toast('คัดลอกลิงก์แล้ว')}catch{$('shareUrl').select();toast('กด Ctrl+C เพื่อคัดลอก')}};
+
+// copy summary
+$('copyBtn').onclick=async()=>{
+  const st={P:'มา',A:'ไม่มา','':'ยังไม่เช็ค'};
+  const txt=['ลำดับ\tคำนำหน้า\tชื่อ-นามสกุล\tบริษัท\tสถานะ\tเวลาเซ็น\tลายเซ็น',...S.people.map((x,i)=>[i+1,x.p,x.n,x.c,st[x.s],fmt(x.t),x.sig?'มีลายเซ็น':''].join('\t'))].join('\n');
+  try{await navigator.clipboard.writeText(txt);toast('คัดลอกแล้ว วางใน Excel ได้เลย')}catch{toast('คัดลอกไม่ได้ในเบราว์เซอร์นี้')}
+};
+
+if(!KEY)gate('หน้านี้ต้องเปิดจากลิงก์เช็คชื่อหรือลิงก์ตรวจสอบที่ผู้ดูแลส่งให้');
+else{load(true);setInterval(()=>load(false),15000)}
+}
+</script>
 </body>
 </html>
