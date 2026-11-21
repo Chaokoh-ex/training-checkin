@@ -1,14 +1,6 @@
-/*
- * ตั้งค่าเว็บเช็คชื่อ: แก้ไฟล์นี้ไฟล์เดียว
- *
- * SHEET_API : URL ของ Google Apps Script Web App (ลงท้ายด้วย /exec)
- *             ดูวิธีสร้างได้ใน README.md หัวข้อ "ขั้นที่ 1"
- *             ถ้าเว้นว่าง หน้าเว็บจะเก็บข้อมูลไว้ในเครื่องที่เปิดเท่านั้น (ใช้ทดสอบได้)
- * POLL_MS   : ความถี่ในการดึงข้อมูลล่าสุดจาก Google Sheets (มิลลิวินาที)
- *
- * URL นี้ไม่ใช่ความลับ ส่วนรหัสผู้ดูแล (ADMIN_KEY) อยู่ใน Script Properties ของ Apps Script ห้ามใส่ไว้ในไฟล์นี้
- */
-window.ATTENDANCE_CONFIG = {
-  SHEET_API: '',
-  POLL_MS: 15000
+// Supabase connection (the publishable/anon key is meant to be public; data is protected by Row Level Security)
+window.APP_CONFIG = {
+  SUPABASE_URL: 'https://lxwykletjdcjkchjqpvt.supabase.co',
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx4d3lrbGV0amRjamtjaGpxcHZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUyMjc3OTgsImV4cCI6MjExMDgwMzc5OH0.ubsnApO_1TUk4HZfdKDetFYh0qJj0yxl5easLwCK12w',
+  ADMIN_EMAIL_HINT: 'chaokoh.ex@gmail.com'
 };
